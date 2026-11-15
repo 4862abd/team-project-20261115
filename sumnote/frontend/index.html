@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f5f7fb" />
+    <title>sumnote | 문서 입력</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="sumnote 첫 화면">sumnote<span>.</span></a>
+        <span class="stage-pill">MVP · 문서 입력</span>
+      </header>
+
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">DOCUMENT INTAKE</p>
+        <h1 id="page-title">문서를 올리고<br />파일 형식을 확인하세요</h1>
+        <p class="intro-copy">
+          PDF, TXT, DOCX, XLSX, XLS, CSV 파일을 업로드할 수 있습니다. 파일 내용은 읽지 않고 확장자만 확인합니다.
+        </p>
+      </section>
+
+      <section class="upload-card" aria-labelledby="upload-title">
+        <div class="card-heading">
+          <div>
+            <p class="step-label">STEP 01</p>
+            <h2 id="upload-title">문서 업로드</h2>
+          </div>
+          <span class="limit-badge">최대 10MB</span>
+        </div>
+
+        <form id="upload-form">
+          <label class="drop-area" for="document-file">
+            <span class="upload-icon" aria-hidden="true">↑</span>
+            <span class="drop-title">파일을 선택해 주세요</span>
+            <span class="drop-hint">PDF · TXT · DOCX · XLSX · XLS · CSV · 파일은 저장되지 않습니다</span>
+            <input id="document-file" name="document" type="file" />
+          </label>
+
+          <div id="selected-file" class="selected-file" hidden></div>
+          <button id="submit-button" class="primary-button" type="submit" disabled>
+            업로드 및 형식 확인
+          </button>
+        </form>
+
+        <div id="status-message" class="status-message" role="status" aria-live="polite" hidden></div>
+        <section id="result-card" class="result-card" aria-labelledby="result-title" hidden>
+          <div class="result-heading">
+            <span class="success-mark" aria-hidden="true">✓</span>
+            <div>
+              <p class="step-label">FORMAT CHECK</p>
+              <h2 id="result-title">형식 확인 완료</h2>
+            </div>
+          </div>
+          <dl id="result-details" class="result-details"></dl>
+          <p class="privacy-note">확인은 확장자 기준입니다. 파일 내용은 검사하지 않으며, 서버에 저장하지 않습니다.</p>
+        </section>
+      </section>
+
+      <footer class="page-footer">sumnote · 문서 업로드와 형식 확인</footer>
+    </main>
+  </body>
+</html>

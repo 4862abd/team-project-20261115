@@ -1,0 +1,62 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+  color: #172238;
+  background: #f5f7fb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --ink-muted: #69758b;
+  --line: #e4e9f1;
+  --accent: #315de8;
+}
+
+* { box-sizing: border-box; }
+
+body { min-width: 320px; min-height: 100vh; margin: 0; }
+
+button, input { font: inherit; }
+
+.page-shell { width: min(100% - 40px, 760px); margin: 0 auto; }
+
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 26px 0; }
+
+.brand { color: #172238; font-size: 21px; font-weight: 800; letter-spacing: -1px; text-decoration: none; }
+.brand span { color: var(--accent); }
+
+.stage-pill, .limit-badge { border: 1px solid #e1e7f1; border-radius: 999px; background: #fff; color: #54627a; font-size: 12px; font-weight: 650; }
+.stage-pill { padding: 8px 12px; }
+
+.intro { padding: 54px 0 28px; }
+.eyebrow, .step-label { margin: 0 0 10px; color: var(--accent); font-size: 11px; font-weight: 800; letter-spacing: 1.35px; }
+.intro h1 { margin: 0; font-size: clamp(32px, 7vw, 48px); letter-spacing: -2.4px; line-height: 1.2; }
+.intro-copy { max-width: 540px; margin: 18px 0 0; color: var(--ink-muted); font-size: 15px; line-height: 1.7; }
+
+.upload-card { padding: 28px; border: 1px solid var(--line); border-radius: 20px; background: #fff; box-shadow: 0 16px 48px rgb(30 48 84 / 6%); }
+.card-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+.card-heading h2, .result-heading h2 { margin: 0; font-size: 19px; letter-spacing: -.5px; }
+.limit-badge { padding: 7px 10px; }
+
+.drop-area { display: flex; min-height: 190px; flex-direction: column; align-items: center; justify-content: center; gap: 9px; border: 1.5px dashed #bdc9dc; border-radius: 14px; background: #fbfcff; cursor: pointer; text-align: center; transition: border-color .15s, background .15s; }
+.drop-area:hover, .drop-area:focus-within { border-color: var(--accent); background: #f7f9ff; }
+.upload-icon { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 12px; background: #eaf0ff; color: var(--accent); font-size: 23px; font-weight: 700; }
+.drop-title { font-size: 15px; font-weight: 700; }
+.drop-hint { color: var(--ink-muted); font-size: 12px; }
+.drop-area input { width: min(82%, 310px); margin-top: 5px; color: #647087; font-size: 12px; }
+
+.selected-file { margin-top: 14px; padding: 11px 13px; border-radius: 10px; background: #f3f6fb; color: #47546a; font-size: 13px; overflow-wrap: anywhere; }
+.primary-button { width: 100%; min-height: 48px; margin-top: 18px; border: 0; border-radius: 11px; background: var(--accent); color: white; font-size: 14px; font-weight: 750; cursor: pointer; transition: background .15s, transform .15s; }
+.primary-button:hover:not(:disabled) { background: #244bd0; transform: translateY(-1px); }
+.primary-button:disabled { background: #aab8df; cursor: not-allowed; }
+
+.status-message { margin-top: 16px; padding: 13px 14px; border: 1px solid #f0caca; border-radius: 10px; background: #fff7f7; color: #a63737; font-size: 13px; line-height: 1.55; }
+.status-message[data-kind="info"] { border-color: #c8d5fb; background: #f5f8ff; color: #3151a5; }
+.result-card { margin-top: 18px; padding: 20px; border: 1px solid #cce6d8; border-radius: 14px; background: #f8fffb; }
+.result-heading { display: flex; align-items: center; gap: 12px; }
+.result-heading .step-label { margin-bottom: 5px; color: #258653; }
+.success-mark { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 50%; background: #dff5e8; color: #258653; font-weight: 800; }
+.result-details { display: grid; grid-template-columns: 130px 1fr; gap: 10px 14px; margin: 20px 0 0; font-size: 13px; }
+.result-details dt { color: var(--ink-muted); }
+.result-details dd { margin: 0; font-weight: 650; overflow-wrap: anywhere; }
+.privacy-note { margin: 18px 0 0; padding-top: 14px; border-top: 1px solid #deeee5; color: #577263; font-size: 12px; line-height: 1.6; }
+.page-footer { padding: 24px 0 32px; color: #8993a5; font-size: 11px; text-align: center; }
+
