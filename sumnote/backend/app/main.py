@@ -1,25 +1,40 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.documents import router as documents_router
-from app.core.config import FRONTEND_DIRECTORY
-from app.services.errors import UploadValidationError
+from app.services.errors import ProcessingError
 
 
 app = FastAPI(
     title="sumnote",
-    description="문서 업로드 및 지원 확장자 확인",
-    version="0.1.0",
+    description="문서 추출, AI 요약·검증, 결과 표시와 파일 다운로드",
+    version="0.2.0",
 )
 
 app.include_router(documents_router, prefix="/api")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://127.0.0.1:5173",
+        "http://localhost:5173",
+    ],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
+)
 
-@app.exception_handler(UploadValidationError)
+
+@app.get("/api/health")
+async def health_check() -> dict[str, str]:
+    return {"status": "ok"}
+
+
+@app.exception_handler(ProcessingError)
 async def upload_validation_error_handler(
     request: Request,
-    error: UploadValidationError,
+    error: ProcessingError,
 ) -> JSONResponse:
     return JSONResponse(
         status_code=error.status_code,
@@ -27,4 +42,8 @@ async def upload_validation_error_handler(
     )
 
 
-app.mount("/", StaticFiles(directory=FRONTEND_DIRECTORY, html=True), name="frontend")
+@app.middleware("http")
+async def prevent_response_caching(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["Cache-Control"] = "no-store"
+    return response

@@ -2,6 +2,7 @@
 .env.*
 *.env
 *.env.*
+!sumnote/.env.example
 
 # Machine-specific and local configuration
 *.local

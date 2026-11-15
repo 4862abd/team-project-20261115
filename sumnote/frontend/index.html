@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#f5f7fb" />
-    <title>sumnote | 문서 입력</title>
+    <meta name="theme-color" content="#f4f6fa" />
+    <title>sumnote | 문서 검토</title>
     <link rel="stylesheet" href="/styles.css" />
     <script src="/app.js" defer></script>
   </head>
@@ -12,55 +12,131 @@
     <main class="page-shell">
       <header class="topbar">
         <a class="brand" href="/" aria-label="sumnote 첫 화면">sumnote<span>.</span></a>
-        <span class="stage-pill">MVP · 문서 입력</span>
+        <a class="api-link" href="http://127.0.0.1:8000/docs" target="_blank" rel="noreferrer">Backend API ↗</a>
       </header>
 
-      <section class="intro" aria-labelledby="page-title">
-        <p class="eyebrow">DOCUMENT INTAKE</p>
-        <h1 id="page-title">문서를 올리고<br />파일 형식을 확인하세요</h1>
-        <p class="intro-copy">
-          PDF, TXT, DOCX, XLSX, XLS, CSV 파일을 업로드할 수 있습니다. 파일 내용은 읽지 않고 확장자만 확인합니다.
-        </p>
-      </section>
-
-      <section class="upload-card" aria-labelledby="upload-title">
-        <div class="card-heading">
-          <div>
-            <p class="step-label">STEP 01</p>
-            <h2 id="upload-title">문서 업로드</h2>
-          </div>
-          <span class="limit-badge">최대 10MB</span>
+      <section id="upload-view" class="upload-screen" aria-labelledby="page-title">
+        <div class="intro">
+          <p class="eyebrow">DOCUMENT REVIEW WORKSPACE</p>
+          <h1 id="page-title">문서의 핵심을<br />한눈에 검토하세요</h1>
+          <p class="intro-copy">파일을 올리면 지원 형식과 크기를 확인합니다. 확인이 끝나면 요약을 시작할 수 있습니다.</p>
         </div>
 
-        <form id="upload-form">
-          <label class="drop-area" for="document-file">
-            <span class="upload-icon" aria-hidden="true">↑</span>
-            <span class="drop-title">파일을 선택해 주세요</span>
-            <span class="drop-hint">PDF · TXT · DOCX · XLSX · XLS · CSV · 파일은 저장되지 않습니다</span>
-            <input id="document-file" name="document" type="file" />
-          </label>
-
-          <div id="selected-file" class="selected-file" hidden></div>
-          <button id="submit-button" class="primary-button" type="submit" disabled>
-            업로드 및 형식 확인
-          </button>
-        </form>
-
-        <div id="status-message" class="status-message" role="status" aria-live="polite" hidden></div>
-        <section id="result-card" class="result-card" aria-labelledby="result-title" hidden>
-          <div class="result-heading">
-            <span class="success-mark" aria-hidden="true">✓</span>
+        <section class="upload-card" aria-labelledby="upload-title">
+          <div class="card-heading">
             <div>
-              <p class="step-label">FORMAT CHECK</p>
-              <h2 id="result-title">형식 확인 완료</h2>
+              <p class="step-label">STEP 01 · DOCUMENT</p>
+              <h2 id="upload-title">문서 업로드</h2>
             </div>
+            <span class="limit-badge">최대 10MB</span>
           </div>
-          <dl id="result-details" class="result-details"></dl>
-          <p class="privacy-note">확인은 확장자 기준입니다. 파일 내용은 검사하지 않으며, 서버에 저장하지 않습니다.</p>
+
+          <form id="upload-form">
+            <label id="drop-area" class="drop-area" for="document-file">
+              <span class="upload-icon" aria-hidden="true">↑</span>
+              <span id="drop-title" class="drop-title">파일을 끌어 놓거나 찾아보세요</span>
+              <span class="drop-hint">PDF · TXT · DOCX · XLSX · XLS · CSV</span>
+              <input id="document-file" name="document" type="file" accept=".pdf,.txt,.docx,.xlsx,.xls,.csv" />
+            </label>
+
+            <div id="selected-file" class="selected-file" hidden></div>
+            <button id="validate-upload-button" class="primary-button" type="submit" disabled>업로드 및 형식 확인</button>
+          </form>
+
+          <div id="upload-message" class="status-message" role="status" aria-live="polite" hidden></div>
+
+          <section id="uploaded-card" class="uploaded-card" hidden aria-labelledby="uploaded-title">
+            <div class="uploaded-heading">
+              <div>
+                <p class="step-label">UPLOAD CHECK</p>
+                <h3 id="uploaded-title">요약 요청 가능</h3>
+              </div>
+              <span id="upload-valid-badge" class="status-badge" data-status="completed">형식·용량 확인 완료</span>
+            </div>
+            <dl id="upload-document-info" class="document-info-grid"></dl>
+            <p id="upload-validation-note" class="validation-note"></p>
+            <button id="summarize-button" class="primary-button summary-button" type="button" disabled>문서 요약 시작</button>
+          </section>
+
+          <p class="privacy-note">원본과 결과는 DB나 임시 파일에 저장하지 않습니다. 문서 본문은 설정된 AI 분석 API로 전송됩니다.</p>
         </section>
       </section>
 
-      <footer class="page-footer">sumnote · 문서 업로드와 형식 확인</footer>
+      <section id="processing-view" class="state-screen processing-screen" hidden aria-live="polite">
+        <div class="state-card">
+          <div class="loading-ring" aria-hidden="true"></div>
+          <p class="eyebrow">ANALYSIS IN PROGRESS</p>
+          <h1>문서를 분석하고 있습니다</h1>
+          <p id="processing-filename" class="state-copy"></p>
+          <p class="state-copy">본문을 정리하고 중요도별 요약과 검토 후보를 만들고 있습니다.</p>
+          <button id="cancel-processing-button" class="secondary-button" type="button">처리 취소</button>
+        </div>
+      </section>
+
+      <section id="error-view" class="state-screen error-screen" hidden aria-labelledby="error-title">
+        <div class="state-card error-card">
+          <div class="error-icon" aria-hidden="true">!</div>
+          <p class="eyebrow">PROCESSING ISSUE</p>
+          <h1 id="error-title">문서를 처리하지 못했습니다</h1>
+          <p id="error-reason" class="error-reason"></p>
+          <p class="state-copy">파일 또는 API 설정을 확인한 뒤 다시 시도할 수 있습니다.</p>
+          <div class="state-actions">
+            <button id="retry-processing-button" class="primary-button compact-button" type="button">같은 문서 다시 요약</button>
+            <button id="return-home-button" class="secondary-button" type="button">첫 화면으로 돌아가기</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="results-view" class="results-screen" hidden aria-labelledby="result-title">
+        <header class="result-header">
+          <div class="result-heading-row">
+            <div class="result-heading-copy">
+              <p class="eyebrow">DOCUMENT DASHBOARD</p>
+              <h1 id="result-title"></h1>
+              <p id="document-meta" class="document-meta"></p>
+            </div>
+            <span id="result-status" class="status-badge"></span>
+          </div>
+          <p id="result-status-message" class="result-status-message"></p>
+          <p id="verification-note" class="verification-note" hidden>검증 결과가 아직 생성되지 않았습니다.</p>
+        </header>
+
+        <section class="dashboard-stats" aria-label="요약 통계">
+          <article class="stat-card"><span>핵심 내용</span><strong id="stat-keypoints">0</strong></article>
+          <article class="stat-card"><span>주제·키워드</span><strong id="stat-topics">0</strong></article>
+          <article class="stat-card"><span>검토 후보</span><strong id="stat-reviews">0</strong></article>
+        </section>
+
+        <nav id="result-tabs" class="result-tabs" aria-label="결과 구역">
+          <button type="button" class="tab-button is-active" data-tab="summary" aria-selected="true">요약 대시보드</button>
+          <button type="button" class="tab-button" data-tab="evidence" aria-selected="false">원문 근거</button>
+          <button type="button" class="tab-button" data-tab="review" aria-selected="false">검토 항목</button>
+        </nav>
+
+        <section class="result-card" aria-live="polite">
+          <div class="page-topline">
+            <span id="page-section-label" class="step-label"></span>
+            <span id="page-counter" class="page-counter"></span>
+          </div>
+          <div id="page-content" class="page-content"></div>
+          <nav class="page-controls" aria-label="결과 페이지 이동">
+            <button id="previous-page" class="page-button" type="button">이전</button>
+            <span class="page-controls-hint">스크롤 없이 페이지로 확인</span>
+            <button id="next-page" class="page-button" type="button">다음</button>
+          </nav>
+        </section>
+
+        <footer class="result-footer">
+          <div class="download-actions">
+            <button id="download-pdf" class="primary-button compact-button" type="button">PDF 다운로드</button>
+            <button id="download-xlsx" class="secondary-button compact-button" type="button" hidden>XLSX 다운로드</button>
+          </div>
+          <p id="download-message" class="download-message" role="status" aria-live="polite" hidden></p>
+          <button id="new-upload-button" class="text-button" type="button">새 문서 업로드</button>
+        </footer>
+      </section>
+
+      <footer class="page-footer">sumnote · 중요도 기반 문서 요약과 사람 검토용 근거</footer>
     </main>
   </body>
 </html>

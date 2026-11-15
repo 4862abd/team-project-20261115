@@ -1,90 +1,81 @@
 # sumnote
 
-**sumnote**는 문서를 업로드하면 AI가 핵심 내용을 요약하고, 사람이 확인할 검증 후보와 원문 근거를 제공하는 문서 검토 프로그램입니다. 문서 검토에 드는 시간을 줄이고 중요한 정보를 빠르게 찾는 것을 목표로 합니다.
+**sumnote**는 문서를 올리면 AI가 중요도에 따라 요약하고, 사람이 확인할 검토 후보와 원문 근거를 보여 주는 문서 검토 프로그램입니다.
 
-## 현재 구현 상태
+## 구성
 
-현재 실행 가능한 기능은 **문서 업로드와 파일 형식 확인**입니다.
+- `frontend/`: 파일 선택·드래그 앤 드롭, 업로드 확인, 진행·오류 화면, 결과 대시보드
+- `backend/`: 파일 제한 확인, 본문 추출, LLM AIagent 호출, PDF·XLSX 결과 생성
+- Frontend와 Backend는 별도 서버 프로세스로 실행합니다. Frontend는 Node.js 기본 HTTP 서버만 사용하며 npm 패키지 설치가 필요하지 않습니다.
 
-- 지원 확장자: `.pdf`, `.txt`, `.docx`, `.xlsx`, `.xls`, `.csv`
-- 파일 크기: 파일당 최대 10MB
-- 형식 확인: 파일 내용이나 MIME 형식은 읽지 않고 파일명 확장자만 확인
-- 처리 데이터: 업로드 파일을 분석하거나 저장하지 않음. DB 및 서버 파일로 보관하지 않음
-- 프론트엔드와 백엔드: FastAPI 서버가 API와 정적 화면을 함께 제공
+## 처리 기준
 
-따라서 파일 이름이 `.pdf`여도 실제 PDF 내용인지 검사하지 않습니다. 현재 단계에서는 확장자와 크기만 확인하며, 텍스트 추출·AI 요약·검증·결과 화면·PDF/XLSX 생성은 아직 구현하지 않았습니다. PDF의 20페이지 제한과 스프레드시트의 표시 시트 제한도 추출 기능을 구현할 때 적용할 예정입니다.
+- 지원 입력: PDF, TXT, DOCX, XLSX, XLS, CSV
+- 업로드 크기: 최대 10MB
+- PDF: 텍스트 추출만 지원, 최대 20페이지, OCR 미지원
+- XLSX·XLS: 숨김 시트 제외, 표시 시트 최대 10개
+- CSV: 단일 시트로 처리
+- 입력 결과: PDF, 스프레드시트 입력은 XLSX도 제공
+- 원본과 결과는 DB 또는 임시 파일에 저장하지 않습니다.
 
-## 전체 MVP 목표
+형식 확인은 파일 확장자 기준입니다. PDF 페이지 수, Excel 시트 수, 파일 읽기 가능 여부는 요약 처리 단계에서 확인합니다.
 
-문서 업로드 후 형식별 본문 또는 표 데이터를 공통 분석 입력으로 만들고, LLM AIagent API를 이용해 중요도 기반 계층형 요약과 검토 후보를 생성합니다. 원문 근거는 API 결과를 사용하며, AI는 사실관계를 최종 확정하지 않고 사람이 확인할 항목을 제공합니다.
+## 환경 설정
 
-전체 목표의 입력 및 출력은 다음과 같습니다.
+Python 3.10 이상과 Node.js가 필요합니다. 먼저 작업공간 루트에서 `.env`를 만들고 실제 API 주소·키·모델을 설정합니다.
 
-| 입력 | 향후 처리 기준 | 결과 파일 |
-| --- | --- | --- |
-| PDF | 텍스트만 추출, 최대 20페이지, OCR 미지원 | PDF |
-| TXT, DOCX | 파일 크기 최대 10MB, 페이지 제한 없음 | PDF |
-| XLSX, XLS | 숨김 시트를 요약에서 제외하고 표시 시트 최대 10개 | PDF 및 XLSX |
-| CSV | 하나의 시트로 취급 | PDF 및 XLSX |
-
-전체 기능에는 결과 화면, 사용자 재시도 흐름도 포함됩니다. 문서와 결과는 DB나 임시 파일에 저장하지 않는 것을 목표로 합니다. 세부 구현 순서와 범위는 [`docs/MVP-plan.md`](../docs/MVP-plan.md), 상세 기능과 제한은 [`docs/requirements.md`](../docs/requirements.md) 및 [`docs/function-breakdown.md`](../docs/function-breakdown.md)를 참고하세요.
-
-## 프로젝트 구조
-
-```text
-sumnote/
-├── backend/
-│   ├── app/
-│   │   ├── api/          # 문서 API 및 입력·응답 스키마
-│   │   ├── core/         # 공통 설정
-│   │   ├── extractors/   # 형식별 추출기 자리
-│   │   ├── services/     # 입력 확인 및 향후 처리 서비스
-│   │   └── main.py       # FastAPI 앱, API 및 프론트엔드 제공
-│   ├── tests/            # 백엔드 테스트 자리
-│   └── requirements.txt
-├── frontend/
-│   ├── index.html
-│   ├── styles.css
-│   └── app.js
-├── .env.example
-└── README.md
+```powershell
+Set-Location .\sumnote
+if (-not (Test-Path .\.env)) { Copy-Item .\.env.example .\.env }
+notepad .\.env
 ```
+
+`AIAGENT_API_URL`은 Chat Completions API 주소여야 합니다. OpenAI API 사용 예시는 `https://api.openai.com/v1/chat/completions`입니다. `AIAGENT_API_KEY`에는 실제 키, `AIAGENT_MODEL`에는 계정에서 사용할 수 있는 모델을 입력하세요. 키는 `.env.example`이나 저장소에 넣지 마세요.
 
 ## 실행 방법
 
-Python 3.9 이상을 설치한 뒤, `sumnote` 디렉토리에서 실행하세요.
+PowerShell 창을 두 개 열고, 작업공간 루트(`team-project`)를 기준으로 실행합니다.
 
-### Windows PowerShell
+### 1번 창: Backend
 
 ```powershell
-Set-Location .\backend
-python -m venv .venv
+Set-Location .\sumnote\backend
+python -m venv .venv --clear
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
 ```
 
-### macOS 또는 Linux
+### 2번 창: Frontend
 
-```bash
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-python -m uvicorn app.main:app --reload
+```powershell
+Set-Location .\sumnote\frontend
+node .\server.mjs
 ```
 
-화면: [http://127.0.0.1:8000](http://127.0.0.1:8000)  
-API 문서: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+이미 `sumnote` 폴더 안에 있다면 각 창에서 각각 `Set-Location .\backend`, `Set-Location .\frontend`로 이동합니다. `sumnote` 안에서 `Set-Location .\sumnote\backend`를 실행하면 잘못된 중첩 경로가 됩니다.
 
-## 업로드 확인 API
+- 앱: [http://127.0.0.1:5173](http://127.0.0.1:5173)
+- Backend API 문서: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- Backend 상태 확인: [http://127.0.0.1:8000/api/health](http://127.0.0.1:8000/api/health)
 
-`POST /api/documents/validate?filename=report.txt`에 파일 바이트를 `application/octet-stream` 본문으로 전송합니다. 성공하면 파일명, 확장자, 확인한 크기와 지원 형식을 JSON으로 반환합니다.
+## 화면 흐름
 
-- 지원하지 않는 확장자는 `415` 응답입니다.
-- 10MB를 초과하면 `413` 응답입니다.
-- 확장자는 대소문자를 구분하지 않습니다.
-- 현재 API는 파일 내용을 분석하지 않으며, 업로드 데이터를 파일이나 DB에 저장하지 않습니다.
+1. 파일을 찾아 선택하거나 업로드 영역에 끌어 놓습니다.
+2. `업로드 및 형식 확인`을 누르면 Backend가 확장자와 크기를 확인하고 파일 정보를 표시합니다.
+3. 확인이 완료되면 `문서 요약 시작` 버튼이 활성화됩니다.
+4. 진행 화면에서 처리 상태를 보고, 오류가 발생하면 원인과 재시도·첫 화면 이동 버튼을 확인합니다.
+5. 결과 대시보드에서 요약·원문 근거·검토 항목 탭을 전환하고 페이지 버튼으로 읽습니다. 결과 영역은 내부 스크롤 없이 페이지 단위로 표시합니다.
 
-## 개발 범위 메모
+## API 경로
 
-MVP 설계서의 TXT 단일 형식은 남은 시간에 대한 권고안이며 확정 입력 범위는 아닙니다. 현재 업로드 확인은 요구사항에 명시된 6개 확장자를 허용합니다. 문서 추출과 AI 요약·검증은 후속 구현 범위입니다.
+| 메서드·경로 | 설명 |
+| --- | --- |
+| `GET /api/health` | Backend 상태 확인 |
+| `POST /api/documents/validate?filename=...` | 확장자와 업로드 크기 확인 |
+| `POST /api/documents/process?filename=...` | 본문 추출, 요약·검증 결과 반환 |
+| `POST /api/documents/download/pdf` | PDF 결과 생성 및 다운로드 |
+| `POST /api/documents/download/xlsx` | 스프레드시트 XLSX 결과 생성 및 다운로드 |
+
+Frontend는 기본적으로 `http://127.0.0.1:8000/api`를 Backend 주소로 사용합니다. Backend 주소를 바꾸려면 `frontend/app.js`의 `SUMNOTE_API_BASE_URL` 기본값을 변경하세요.
+
+자세한 요구사항은 [`../docs/requirements.md`](../docs/requirements.md), MVP 범위와 구현 순서는 [`../docs/MVP-plan.md`](../docs/MVP-plan.md)를 참고하세요.
