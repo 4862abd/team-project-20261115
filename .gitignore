@@ -1,0 +1,10 @@
+# Environment variables and secrets
+.env*
+*.env
+*.env.*
+
+# Machine-specific and local configuration
+*.local
+*.local.*
+*.secret
+*.secret.*
