@@ -10,3 +10,8 @@
 *.secret
 *.secret.*
 sumnote/.env.example
+
+.venv/
+__pycache__/
+*.py[cod]
+.env
