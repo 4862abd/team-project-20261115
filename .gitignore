@@ -9,3 +9,4 @@
 *.local.*
 *.secret
 *.secret.*
+sumnote/.env.example

@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
-load_dotenv(PROJECT_ROOT / ".env")
+load_dotenv(PROJECT_ROOT / ".env.example")
 
 MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024
 MAX_PDF_PAGES = 20
