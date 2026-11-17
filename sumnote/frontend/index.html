@@ -36,10 +36,28 @@
               <span class="upload-icon" aria-hidden="true">↑</span>
               <span id="drop-title" class="drop-title">파일을 끌어 놓거나 찾아보세요</span>
               <span class="drop-hint">PDF · TXT · DOCX · XLSX · XLS · CSV</span>
-              <input id="document-file" name="document" type="file" accept=".pdf,.txt,.docx,.xlsx,.xls,.csv" />
             </label>
 
-            <div id="selected-file" class="selected-file" hidden></div>
+            <input id="document-file" class="visually-hidden" name="document" type="file" accept=".pdf,.txt,.docx,.xlsx,.xls,.csv" />
+            <section id="selected-document-card" class="selected-document-card" hidden aria-label="선택한 문서 확인">
+              <div class="selected-document-heading">
+                <div class="selected-document-file">
+                  <span class="selected-file-icon" aria-hidden="true">▤</span>
+                  <div>
+                    <strong id="selected-filename"></strong>
+                    <span id="selected-file-meta" class="selected-file-meta"></span>
+                  </div>
+                </div>
+                <button id="reupload-button" class="secondary-button reupload-button" type="button">재업로드</button>
+              </div>
+              <div class="selected-document-message">
+                <span class="selected-check-icon" aria-hidden="true">✓</span>
+                <div>
+                  <strong>이 문서를 업로드할까요?</strong>
+                  <p>문서 내용은 표시하지 않습니다. 새 파일을 이 영역에 끌어 놓거나 재업로드 버튼으로 바꿀 수 있습니다.</p>
+                </div>
+              </div>
+            </section>
             <button id="validate-upload-button" class="primary-button" type="submit" disabled>업로드 및 형식 확인</button>
           </form>
 

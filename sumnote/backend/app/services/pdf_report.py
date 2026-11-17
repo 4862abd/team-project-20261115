@@ -14,6 +14,7 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 from app.api.schemas.result import ProcessingResult
 from app.core.config import PDF_FONT_PATH
 from app.services.errors import ProcessingError
+from app.services.report_hierarchy import build_key_point_tree
 
 
 FONT_NAME = "SumNoteKorean"
@@ -80,6 +81,31 @@ def build_pdf_report(result: ProcessingResult) -> bytes:
         "SumNoteSmall", parent=body_style, fontSize=8.5, leading=12,
         textColor=colors.HexColor("#59657a"), leftIndent=4 * mm,
     )
+    key_point_styles = {
+        0: ParagraphStyle(
+            "SumNoteKeyPointMajor", parent=body_style, fontSize=10.5, leading=15,
+            textColor=colors.HexColor("#244bb8"), fontName=font_name,
+            leftIndent=0, spaceBefore=2.5 * mm, spaceAfter=0.8 * mm,
+        ),
+        1: ParagraphStyle(
+            "SumNoteKeyPointMiddle", parent=body_style, fontSize=9.5, leading=14,
+            textColor=colors.HexColor("#273247"), fontName=font_name,
+            leftIndent=6 * mm, spaceBefore=1.5 * mm, spaceAfter=0.5 * mm,
+        ),
+        2: ParagraphStyle(
+            "SumNoteKeyPointMinor", parent=body_style, fontSize=9, leading=13,
+            textColor=colors.HexColor("#59657a"), fontName=font_name,
+            leftIndent=12 * mm, spaceBefore=1 * mm, spaceAfter=0.5 * mm,
+        ),
+    }
+    key_point_content_styles = {
+        depth: ParagraphStyle(
+            f"SumNoteKeyPointContent{depth}", parent=small_style,
+            leftIndent=(depth * 6 + 4) * mm,
+            spaceAfter=1.8 * mm,
+        )
+        for depth in range(3)
+    }
 
     elements = [
         _paragraph(result.summary.title or document.filename or "문서 요약", title_style),
@@ -114,13 +140,19 @@ def build_pdf_report(result: ProcessingResult) -> bytes:
         _paragraph("핵심 내용", heading_style),
     ])
 
-    importance_order = {"높음": 0, "중간": 1, "낮음": 2}
-    key_points = sorted(summary.key_points, key=lambda item: importance_order.get(item.importance, 1))
-    for point in key_points:
-        elements.append(_paragraph(f"{point.level} · {point.importance} · {point.title}", body_style))
-        elements.append(_paragraph(point.content, small_style))
+    def append_key_point(node: dict) -> None:
+        point = node["point"]
+        depth = node["depth"]
+        elements.append(_paragraph(f"{point.level} · {point.importance} · {point.title}", key_point_styles[depth]))
+        elements.append(_paragraph(point.content, key_point_content_styles[depth]))
+        for child in node["children"]:
+            append_key_point(child)
+
+    for node in build_key_point_tree(summary.key_points):
+        append_key_point(node)
 
     elements.append(_paragraph("주요 인물·기관·날짜·수치·조건", heading_style))
+    importance_order = {"높음": 0, "중간": 1, "낮음": 2}
     if summary.important_facts:
         for fact in sorted(summary.important_facts, key=lambda item: importance_order.get(item.importance, 1)):
             elements.append(_paragraph(f"{fact.label}: {fact.value} ({fact.importance})", body_style))

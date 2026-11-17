@@ -10,7 +10,10 @@ const uploadForm = document.querySelector("#upload-form");
 const dropArea = document.querySelector("#drop-area");
 const dropTitle = document.querySelector("#drop-title");
 const fileInput = document.querySelector("#document-file");
-const selectedFile = document.querySelector("#selected-file");
+const selectedDocumentCard = document.querySelector("#selected-document-card");
+const selectedFilename = document.querySelector("#selected-filename");
+const selectedFileMeta = document.querySelector("#selected-file-meta");
+const reuploadButton = document.querySelector("#reupload-button");
 const validateUploadButton = document.querySelector("#validate-upload-button");
 const uploadMessage = document.querySelector("#upload-message");
 const uploadedCard = document.querySelector("#uploaded-card");
@@ -108,22 +111,28 @@ function clearUploadValidation() {
   setMessage(uploadMessage, "");
 }
 
+function renderSelectedDocument(file) {
+  const extension = file.name.match(/\.[^.]+$/)?.[0]?.toLowerCase() ?? "";
+  selectedFilename.textContent = file.name;
+  selectedFileMeta.textContent = `${extension.slice(1).toUpperCase() || "문서"} · ${formatBytes(file.size)}`;
+}
+
 function showSelectedFile(file) {
   if (isValidatingUpload) return;
   currentFile = file || null;
   clearUploadValidation();
   if (!file) {
-    selectedFile.textContent = "";
-    selectedFile.hidden = true;
+    selectedDocumentCard.hidden = true;
+    dropArea.hidden = false;
     validateUploadButton.disabled = true;
     dropTitle.textContent = "파일을 끌어 놓거나 찾아보세요";
     return;
   }
 
-  selectedFile.textContent = `${file.name} · ${formatBytes(file.size)}`;
-  selectedFile.hidden = false;
+  renderSelectedDocument(file);
+  selectedDocumentCard.hidden = false;
+  dropArea.hidden = true;
   validateUploadButton.disabled = false;
-  dropTitle.textContent = "선택한 문서를 확인해 주세요";
 }
 
 function renderUploadInfo(data) {
@@ -141,7 +150,7 @@ function renderUploadInfo(data) {
     description.textContent = displayValue(value);
     uploadDocumentInfo.append(term, description);
   }
-  uploadValidationNote.textContent = "지원 확장자와 10MB 제한을 통과했습니다. 파일 읽기, PDF 페이지 수, Excel 시트 수는 요약 처리 단계에서 추가 확인합니다.";
+  uploadValidationNote.textContent = "지원 확장자와 10MB 제한을 통과했습니다. 파일 읽기와 PDF 페이지 수 기록, Excel 시트 수는 요약 처리 단계에서 확인합니다. PDF 페이지 수 제한은 없습니다.";
   uploadedCard.hidden = false;
   summarizeButton.disabled = false;
 }
@@ -153,6 +162,7 @@ async function validateUpload() {
   clearUploadValidation();
   validateUploadButton.disabled = true;
   fileInput.disabled = true;
+  reuploadButton.disabled = true;
   validateUploadButton.textContent = "업로드 형식 확인 중…";
   setMessage(uploadMessage, "파일을 서버에 전달해 지원 형식과 크기를 확인하고 있습니다.", "info");
 
@@ -178,6 +188,7 @@ async function validateUpload() {
   } finally {
     isValidatingUpload = false;
     fileInput.disabled = false;
+    reuploadButton.disabled = false;
     validateUploadButton.disabled = !currentFile;
     validateUploadButton.textContent = "업로드 및 형식 확인";
   }
@@ -303,6 +314,7 @@ function createPages(result, tab) {
 function renderCurrentPage() {
   const page = pages[pageIndex];
   if (!page) return;
+  pageContent.classList.toggle("is-summary-page", currentTab === "summary");
   pageSectionLabel.textContent = page.section;
   pageCounter.textContent = `${pageIndex + 1} / ${pages.length}`;
   pageContent.replaceChildren();
@@ -468,8 +480,9 @@ function returnHome() {
   uploadValidation = null;
   currentResult = null;
   fileInput.value = "";
-  selectedFile.textContent = "";
-  selectedFile.hidden = true;
+  selectedDocumentCard.hidden = true;
+  dropArea.hidden = false;
+  dropTitle.textContent = "파일을 끌어 놓거나 찾아보세요";
   validateUploadButton.disabled = true;
   summarizeButton.disabled = true;
   uploadedCard.hidden = true;
@@ -479,6 +492,11 @@ function returnHome() {
 }
 
 fileInput.addEventListener("change", () => showSelectedFile(fileInput.files?.[0] ?? null));
+reuploadButton.addEventListener("click", () => {
+  if (isValidatingUpload) return;
+  fileInput.value = "";
+  fileInput.click();
+});
 
 for (const eventName of ["dragenter", "dragover"]) {
   dropArea.addEventListener(eventName, (event) => {
@@ -493,6 +511,24 @@ for (const eventName of ["dragleave", "drop"]) {
   });
 }
 dropArea.addEventListener("drop", (event) => {
+  if (isValidatingUpload) return;
+  const file = event.dataTransfer?.files?.[0];
+  if (file) showSelectedFile(file);
+});
+
+for (const eventName of ["dragenter", "dragover"]) {
+  selectedDocumentCard.addEventListener(eventName, (event) => {
+    event.preventDefault();
+    if (!isValidatingUpload) selectedDocumentCard.classList.add("is-dragging");
+  });
+}
+for (const eventName of ["dragleave", "drop"]) {
+  selectedDocumentCard.addEventListener(eventName, (event) => {
+    event.preventDefault();
+    selectedDocumentCard.classList.remove("is-dragging");
+  });
+}
+selectedDocumentCard.addEventListener("drop", (event) => {
   if (isValidatingUpload) return;
   const file = event.dataTransfer?.files?.[0];
   if (file) showSelectedFile(file);

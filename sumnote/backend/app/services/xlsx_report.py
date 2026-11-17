@@ -5,6 +5,7 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
 from app.api.schemas.result import ProcessingResult
+from app.services.report_hierarchy import build_key_point_tree
 from app.services.errors import ProcessingError
 
 
@@ -42,10 +43,13 @@ def build_xlsx_report(result: ProcessingResult) -> bytes:
         summary = result.summary
         status = _status_label(result.status)
 
-        def add_summary_row(label: str, content: str, verification: str = "없음") -> None:
+        def add_summary_row(label: str, content: str, verification: str = "없음", depth: int = 0) -> None:
             pieces = _split_text(content)
             for index, piece in enumerate(pieces):
                 overall.append([label if index == 0 else f"{label} (계속)", piece, verification if index == 0 else ""])
+                row_index = overall.max_row
+                overall.cell(row_index, 1).alignment = Alignment(vertical="top", wrap_text=True, indent=depth)
+                overall.row_dimensions[row_index].outlineLevel = min(depth, 7)
 
         add_summary_row("문서명", result.document.filename)
         add_summary_row("입력 형식", f"{result.document.format} ({result.document.extension})")
@@ -55,13 +59,20 @@ def build_xlsx_report(result: ProcessingResult) -> bytes:
         add_summary_row("주제", ", ".join(summary.topics))
         add_summary_row("키워드", ", ".join(summary.keywords))
 
+        def add_key_point_rows(nodes: list[dict]) -> None:
+            for node in nodes:
+                point = node["point"]
+                add_summary_row(
+                    f"{point.level} · {point.importance} · {point.title}",
+                    point.content,
+                    "사람 확인 필요" if not point.evidence else "근거 연결됨",
+                    depth=node["depth"],
+                )
+                add_key_point_rows(node["children"])
+
+        add_key_point_rows(build_key_point_tree(summary.key_points))
+        overall.sheet_properties.outlinePr.summaryBelow = False
         point_order = {"높음": 0, "중간": 1, "낮음": 2}
-        for point in sorted(summary.key_points, key=lambda item: point_order.get(item.importance, 1)):
-            add_summary_row(
-                f"{point.level} · {point.importance} · {point.title}",
-                point.content,
-                "사람 확인 필요" if not point.evidence else "근거 연결됨",
-            )
         for fact in sorted(summary.important_facts, key=lambda item: point_order.get(item.importance, 1)):
             add_summary_row(
                 f"수치·조건 · {fact.label}",
@@ -127,7 +138,7 @@ def build_xlsx_report(result: ProcessingResult) -> bytes:
                 cell.alignment = Alignment(vertical="center", wrap_text=True)
             for row in worksheet.iter_rows(min_row=2):
                 for cell in row:
-                    cell.alignment = Alignment(vertical="top", wrap_text=True)
+                    cell.alignment = Alignment(vertical="top", wrap_text=True, indent=cell.alignment.indent)
                     if isinstance(cell.value, str):
                         cell.data_type = "s"
             worksheet.row_dimensions[1].height = 28

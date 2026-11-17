@@ -2,7 +2,6 @@ from io import BytesIO
 
 from pypdf import PdfReader
 
-from app.core.config import MAX_PDF_PAGES
 from app.services.errors import ProcessingError
 from app.services.text_normalization import ExtractedDocument, normalize_text
 
@@ -21,13 +20,6 @@ def extract_pdf(data: bytes) -> ExtractedDocument:
                 ) from error
 
         page_count = len(reader.pages)
-        if page_count > MAX_PDF_PAGES:
-            raise ProcessingError(
-                "PDF_PAGE_LIMIT_EXCEEDED",
-                f"PDF가 20페이지를 초과했습니다. 현재 페이지 수: {page_count}",
-                422,
-            )
-
         page_texts = []
         for index, page in enumerate(reader.pages, start=1):
             page_text = normalize_text(page.extract_text() or "")
