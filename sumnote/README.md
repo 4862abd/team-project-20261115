@@ -22,14 +22,14 @@
 
 ## 환경 설정
 
-Python 3.10 이상과 Node.js가 필요합니다. `sumnote/.env.example`에 실제 API 주소·키·모델을 설정합니다. Backend는 이 파일을 직접 읽습니다.
+Python 3.10 이상과 Node.js가 필요합니다. `sumnote/.env`에 실제 API 주소·키·모델을 설정합니다. Backend는 이 파일을 직접 읽습니다.
 
 ```powershell
 Set-Location .\sumnote
-notepad .env.example
+notepad .env
 ```
 
-`AIAGENT_API_URL`은 Chat Completions API 주소여야 합니다. OpenAI API 사용 예시는 `https://api.openai.com/v1/chat/completions`입니다. `AIAGENT_API_KEY`에는 실제 키, `AIAGENT_MODEL`에는 계정에서 사용할 수 있는 모델을 입력하세요. `.env.example`은 저장소에서 관리되는 파일이므로 실제 키를 입력한 변경 사항을 커밋하거나 공유하지 마세요.
+`AIAGENT_API_URL`은 Chat Completions API 주소여야 합니다. OpenAI API 사용 예시는 `https://api.openai.com/v1/chat/completions`입니다. `AIAGENT_API_KEY`에는 실제 키, `AIAGENT_MODEL`에는 계정에서 사용할 수 있는 모델을 입력하세요. `.env`은 저장소에서 관리되는 파일이므로 실제 키를 입력한 변경 사항을 커밋하거나 공유하지 마세요.
 
 ## 실행 방법
 
