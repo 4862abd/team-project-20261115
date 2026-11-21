@@ -1,6 +1,6 @@
 # team-project-20261115
 
-실제 README 는 ./sumnote 에 있습니다.
+**실제 README 는 ./sumnote 에 있습니다.**
 하단은 서버 실행법 입니다.
 
 
