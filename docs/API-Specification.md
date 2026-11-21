@@ -4,7 +4,7 @@
 
 | 항목 | 내용 |
 | --- | --- |
-| API 이름 | sumnote Backend API |
+| API 이름 | 팀 프로젝트 sumnote |
 | 버전 | 0.2.0 |
 | 기준 | 현재 `sumnote/backend` 구현 |
 | 기본 주소(로컬) | `http://127.0.0.1:8000` |
